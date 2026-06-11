@@ -1,4 +1,4 @@
-# Hackernotpad<!DOCTYPE html>
+# Hackernotpad
 <html lang="sw">
 <head>
     <meta charset="UTF-8">
