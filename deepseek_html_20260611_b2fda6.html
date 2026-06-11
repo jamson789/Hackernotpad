@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💀 HACKER NOTEPAD - Encrypted Notes v1.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Fira Code', monospace;
+            background: #0a0a0a;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Matrix Rain Animation */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* Glitch Animation */
+        @keyframes glitch {
+            0%, 100% {
+                text-shadow: 0.05em 0 0 rgba(255,0,0,0.75), -0.05em -0.025em 0 rgba(0,255,0,0.75);
+                transform: translate(0, 0);
+            }
+            25% {
+                text-shadow: -0.05em -0.025em 0 rgba(255,0,0,0.75), 0.025em 0.05em 0 rgba(0,255,0,0.75);
+                transform: translate(2px, -1px);
+            }
+            50% {
+                text-shadow: 0.025em 0.05em 0 rgba(255,0,0,0.75), 0.05em 0 0 rgba(0,255,0,0.75);
+                transform: translate(-2px, 1px);
+            }
+            75% {
+                text-shadow: -0.025em -0.025em 0 rgba(255,0,0,0.75), -0.05em -0.025em 0 rgba(0,255,0,0.75);
+                transform: translate(1px, -2px);
+            }
+        }
+
+        @keyframes pulse-glitch {
+            0%, 100% {
+                opacity: 1;
+                filter: blur(0);
+            }
+            50% {
+                opacity: 0.8;
+                filter: blur(1px);
+            }
+        }
+
+        @keyframes scanline {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100%);
+            }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @keyframes neon-pulse {
+            0%, 100% {
+                box-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 20px #0f0;
+            }
+            50% {
+                box-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 40px #0f0;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake-hacker {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        /* Scanline effect */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 0, 0.03) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 10;
+            animation: scanline 8s linear infinite;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header - Hacker Style */
+        .hacker-header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .hacker-header h1 {
+            font-size: 2.5em;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 40px #0f0;
+            letter-spacing: 5px;
+            animation: glitch 3s infinite;
+        }
+
+        .hacker-header p {
+            color: #0f0;
+            font-size: 0.9em;
+            opacity: 0.7;
+            letter-spacing: 2px;
+        }
+
+        .status-bar {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 10px 20px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .status-item {
+            color: #0f0;
+        }
+
+        .status-item span {
+            color: #fff;
+        }
+
+        /* Search Section - Terminal Style */
+        .terminal-section {
+            background: #0a0a0a;
+            border: 2px solid #0f0;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            animation: fadeInUp 0.7s ease;
+        }
+
+        .terminal-header {
+            background: #0f0;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-header .title {
+            color: #000;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .terminal-header .dots span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 5px;
+        }
+
+        .terminal-header .dots span:nth-child(1) { background: #ff5f56; }
+        .terminal-header .dots span:nth-child(2) { background: #ffbd2e; }
+        .terminal-header .dots span:nth-child(3) { background: #27c93f; }
+
+        .terminal-body {
+            padding: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-box input {
+            flex: 1;
+            background: #000;
+            border: 1px solid #0f0;
+            padding: 12px;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        .search-box button {
+            background: #0f0;
+            border: none;
+            padding: 12px 20px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: monospace;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .search-box button:hover {
+            background: #0a0;
+            box-shadow: 0 0 15px #0f0;
+        }
+
+        /* Add Note Section */
+        .add-section {
+            background: #0a0a0a;
+            border: 2px solid #0f0;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .note-textarea {
+            width: 100%;
+            background: #000;
+            border: 1px solid #0f0;
+            padding: 15px;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 14px;
+            border-radius: 5px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .note-textarea:focus {
+            outline: none;
+            box-shadow: 0 0 15px #0f0;
+        }
+
+        /* Encryption Level Selector */
+        .encrypt-level {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .encrypt-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #0f0;
+            cursor: pointer;
+        }
+
+        .encrypt-option input {
+            accent-color: #0f0;
+        }
+
+        .add-btn {
+            width: 100%;
+            background: #0f0;
+            border: none;
+            padding: 12px;
+            color: #000;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #0a0;
+            box-shadow: 0 0 20px #0f0;
+            animation: pulse-glitch 0.5s;
+        }
+
+        /* Notes Grid */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .note-card {
+            background: #050505;
+            border: 1px solid #0f0;
+            border-radius: 8px;
+            padding: 18px;
+            position: relative;
+            transition: all 0.3s;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .note-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            border-color: #0f0;
+        }
+
+        .note-card.encrypted {
+            border-color: #ff0;
+            box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+        }
+
+        .note-card.decrypting {
+            animation: shake-hacker 0.3s ease;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .note-id {
+            color: #0f0;
+            font-size: 11px;
+            background: rgba(0, 255, 0, 0.1);
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+
+        .note-date {
+            color: #666;
+            font-size: 10px;
+        }
+
+        .note-content {
+            color: #0f0;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 15px 0;
+            word-wrap: break-word;
+            font-family: monospace;
+        }
+
+        .note-content.encrypted-content {
+            color: #ff0;
+            filter: blur(3px);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .note-content.encrypted-content:hover {
+            filter: blur(0);
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .note-actions button {
+            flex: 1;
+            padding: 6px;
+            background: transparent;
+            border: 1px solid #0f0;
+            color: #0f0;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 11px;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        .note-actions button:hover {
+            background: #0f0;
+            color: #000;
+        }
+
+        .delete-btn {
+            border-color: #f00 !important;
+            color: #f00 !important;
+        }
+
+        .delete-btn:hover {
+            background: #f00 !important;
+            color: #000 !important;
+        }
+
+        .pin-btn.pinned {
+            background: #0f0;
+            color: #000;
+        }
+
+        /* Stats */
+        .stats-bar {
+            background: #0a0a0a;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 12px 20px;
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-item {
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .stat-number {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #0a0a0a;
+            border: 2px solid #0f0;
+            border-radius: 8px;
+            padding: 25px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            background: #000;
+            border: 1px solid #0f0;
+            padding: 12px;
+            color: #0f0;
+            font-family: monospace;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0a0a0a;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 10px 20px;
+            font-family: monospace;
+            z-index: 2000;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        /* Blinking cursor */
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .hacker-header h1 { font-size: 1.5em; letter-spacing: 2px; }
+            .notes-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix-canvas"></canvas>
+    <div class="scanline"></div>
+
+    <div class="container">
+        <!-- Hacker Header -->
+        <div class="hacker-header">
+            <h1>💀 HACKER NOTEPAD v1.0 💀</h1>
+            <p># ENCRYPTED_NOTES # SECURE_STORAGE # ROOT_ACCESS</p>
+            <div class="status-bar">
+                <div class="status-item">🔒 ENCRYPTION: <span>ACTIVE</span></div>
+                <div class="status-item">🖥️ SESSION: <span id="sessionId">ROOT_<?php echo rand(1000,9999); ?></span></div>
+                <div class="status-item">🌐 STATUS: <span id="connectionStatus">CONNECTED</span></div>
+            </div>
+        </div>
+
+        <!-- Terminal Search -->
+        <div class="terminal-section">
+            <div class="terminal-header">
+                <span class="title">$ search --encrypted --recursive</span>
+                <div class="dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            <div class="terminal-body">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="> grep -r 'keyword' /notes/database">
+                    <button onclick="searchNotes()">🔍 EXECUTE</button>
+                    <button onclick="clearSearch()" style="background: #333; color:#0f0;">CLEAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Note Section -->
+        <div class="add-section">
+            <div class="terminal-header">
+                <span class="title">$ nano new_note.enc</span>
+                <div class="dots"><span></span><span></span><span></span></div>
+            </div>
+            <div class="terminal-body">
+                <textarea class="note-textarea" id="noteText" rows="3" placeholder="> Enter your encrypted note here..."></textarea>
+                <div class="encrypt-level">
+                    <label class="encrypt-option">
+                        <input type="radio" name="encrypt" value="none" checked> 🔓 PLAIN TEXT
+                    </label>
+                    <label class="encrypt-option">
+                        <input type="radio" name="encrypt" value="base64"> 🔒 BASE64 ENCRYPT
+                    </label>
+                    <label class="encrypt-option">
+                        <input type="radio" name="encrypt" value="reverse"> 🔐 REVERSE ENCRYPT
+                    </label>
+                    <label class="encrypt-option">
+                        <input type="radio" name="encrypt" value="xor"> 🛡️ XOR ENCRYPT
+                    </label>
+                </div>
+                <button class="add-btn" onclick="addNote()">[+] SAVE_TO_DATABASE.exe</button>
+            </div>
+        </div>
+
+        <!-- Notes Grid -->
+        <div id="notesGrid" class="notes-grid"></div>
+
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-item">📁 TOTAL_NOTES: <span id="totalNotes" class="stat-number">0</span></div>
+            <div class="stat-item">📌 PINNED_NOTES: <span id="pinnedCount" class="stat-number">0</span></div>
+            <div class="stat-item">🔍 SEARCH_RESULTS: <span id="searchResultCount" class="stat-number">0</span></div>
+            <div class="stat-item">🔐 ENCRYPTED: <span id="encryptedCount" class="stat-number">0</span></div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: #0f0;">✏️ EDIT_NOTE.exe</h3>
+            <textarea id="editText" rows="4"></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button class="add-btn" onclick="saveEdit()" style="flex:1;">💾 DECRYPT & SAVE</button>
+                <button class="add-btn" onclick="closeModal()" style="background:#333; flex:1;">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix Rain Effect
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+        const charArray = chars.split('');
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        
+        for(let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
+        }
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+            
+            for(let i = 0; i < drops.length; i++) {
+                const text = charArray[Math.floor(Math.random() * charArray.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        
+        setInterval(drawMatrix, 50);
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Database
+        let notes = [];
+        let currentEditId = null;
+        let currentSearchTerm = '';
+
+        // Encryption functions
+        function encryptBase64(text) {
+            return btoa(unescape(encodeURIComponent(text)));
+        }
+        
+        function decryptBase64(encrypted) {
+            try {
+                return decodeURIComponent(escape(atob(encrypted)));
+            } catch(e) {
+                return "[DECRYPT_ERROR] " + encrypted;
+            }
+        }
+        
+        function encryptReverse(text) {
+            return text.split('').reverse().join('');
+        }
+        
+        function decryptReverse(encrypted) {
+            return encrypted.split('').reverse().join('');
+        }
+        
+        function encryptXOR(text) {
+            let result = '';
+            for(let i = 0; i < text.length; i++) {
+                result += String.fromCharCode(text.charCodeAt(i) ^ 0x55);
+            }
+            return btoa(result);
+        }
+        
+        function decryptXOR(encrypted) {
+            try {
+                let decoded = atob(encrypted);
+                let result = '';
+                for(let i = 0; i < decoded.length; i++) {
+                    result += String.fromCharCode(decoded.charCodeAt(i) ^ 0x55);
+                }
+                return result;
+            } catch(e) {
+                return "[DECRYPT_ERROR]";
+            }
+        }
+
+        function encryptText(text, method) {
+            if(method === 'base64') return encryptBase64(text);
+            if(method === 'reverse') return encryptReverse(text);
+            if(method === 'xor') return encryptXOR(text);
+            return text;
+        }
+
+        function decryptText(encrypted, method) {
+            if(method === 'base64') return decryptBase64(encrypted);
+            if(method === 'reverse') return decryptReverse(encrypted);
+            if(method === 'xor') return decryptXOR(encrypted);
+            return encrypted;
+        }
+
+        // Initialize
+        function init() {
+            loadNotes();
+            displayNotes();
+            updateStats();
+            animateStatus();
+        }
+
+        function loadNotes() {
+            const saved = localStorage.getItem('hacker_notes');
+            if(saved) {
+                notes = JSON.parse(saved);
+            } else {
+                notes = [
+                    {
+                        id: Date.now(),
+                        text: encryptText("ACCESS GRANTED - Welcome to Hacker Notepad! This is an encrypted secure storage.", 'base64'),
+                        encryptMethod: 'base64',
+                        date: new Date().toLocaleString(),
+                        pinned: true
+                    },
+                    {
+                        id: Date.now() + 1,
+                        text: encryptText("ROOT ACCESS: Use search to find your notes. All data is encrypted locally.", 'xor'),
+                        encryptMethod: 'xor',
+                        date: new Date().toLocaleString(),
+                        pinned: false
+                    }
+                ];
+                saveNotes();
+            }
+        }
+
+        function saveNotes() {
+            localStorage.setItem('hacker_notes', JSON.stringify(notes));
+        }
+
+        // Add note
+        function addNote() {
+            const text = document.getElementById('noteText').value.trim();
+            const encryptMethod = document.querySelector('input[name="encrypt"]:checked').value;
+            
+            if(!text) {
+                showToast("ERROR: No input detected!", 2000);
+                return;
+            }
+            
+            const encryptedText = encryptText(text, encryptMethod);
+            
+            const newNote = {
+                id: Date.now(),
+                text: encryptedText,
+                encryptMethod: encryptMethod,
+                date: new Date().toLocaleString(),
+                pinned: false
+            };
+            
+            notes.unshift(newNote);
+            saveNotes();
+            document.getElementById('noteText').value = '';
+            displayNotes();
+            updateStats();
+            showToast("✓ NOTE_SAVED | Encrypted: " + encryptMethod.toUpperCase(), 1500);
+        }
+
+        // Delete note
+        function deleteNote(id) {
+            if(confirm("Delete note? This action cannot be undone. [Y/N]")) {
+                notes = notes.filter(n => n.id !== id);
+                saveNotes();
+                displayNotes();
+                updateStats();
+                showToast("✓ NOTE_DELETED", 1000);
+            }
+        }
+
+        // Toggle pin
+        function togglePin(id) {
+            const index = notes.findIndex(n => n.id === id);
+            if(index !== -1) {
+                notes[index].pinned = !notes[index].pinned;
+                saveNotes();
+                displayNotes();
+                showToast(notes[index].pinned ? "📌 NOTE_PINNED" : "📍 NOTE_UNPINNED", 1000);
+            }
+        }
+
+        // Edit note (decrypt for editing)
+        function editNote(id) {
+            const note = notes.find(n => n.id === id);
+            if(note) {
+                const decryptedText = decryptText(note.text, note.encryptMethod);
+                currentEditId = id;
+                document.getElementById('editText').value = decryptedText;
+                document.getElementById('editModal').style.display = 'flex';
+            }
+        }
+
+        // Save edit (re-encrypt)
+        function saveEdit() {
+            const newText = document.getElementById('editText').value.trim();
+            if(newText) {
+                const index = notes.findIndex(n => n.id === currentEditId);
+                if(index !== -1) {
+                    const newEncrypted = encryptText(newText, notes[index].encryptMethod);
+                    notes[index].text = newEncrypted;
+                    notes[index].date = `Edited: ${new Date().toLocaleString()}`;
+                    saveNotes();
+                    displayNotes();
+                    updateStats();
+                    showToast("✓ NOTE_MODIFIED", 1500);
+                }
+            }
+            closeModal();
+        }
+
+        // Copy note (decrypt for copy)
+        function copyNote(id) {
+            const note = notes.find(n => n.id === id);
+            if(note) {
+                const decrypted = decryptText(note.text, note.encryptMethod);
+                navigator.clipboard.writeText(decrypted);
+                showToast("✓ COPIED_TO_CLIPBOARD", 1000);
+            }
+        }
+
+        // Decrypt and view
+        function decryptNote(id, element) {
+            const note = notes.find(n => n.id === id);
+            if(note && note.encryptMethod !== 'none') {
+                const decrypted = decryptText(note.text, note.encryptMethod);
+                const contentDiv = element.querySelector('.note-content');
+                const originalText = contentDiv.innerHTML;
+                
+                if(contentDiv.classList.contains('encrypted-content')) {
+                    contentDiv.classList.remove('encrypted-content');
+                    contentDiv.innerHTML = escapeHtml(decrypted);
+                    contentDiv.style.filter = 'none';
+                    showToast("🔓 NOTE_DECRYPTED", 1000);
+                } else {
+                    contentDiv.classList.add('encrypted-content');
+                    contentDiv.innerHTML = escapeHtml('[ENCRYPTED] ' + note.text.substring(0, 30) + '...');
+                    contentDiv.style.filter = 'blur(3px)';
+                    showToast("🔒 NOTE_ENCRYPTED", 1000);
+                }
+            }
+        }
+
+        // Search
+        function searchNotes() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            currentSearchTerm = searchTerm;
+            displayNotes();
+            
+            if(searchTerm) {
+                const results = notes.filter(n => {
+                    const decrypted = decryptText(n.text, n.encryptMethod);
+                    return decrypted.toLowerCase().includes(searchTerm);
+                });
+                showToast(`🔍 SEARCH_COMPLETE: ${results.length} match(es) found`, 1500);
+                document.getElementById('searchResultCount').innerText = results.length;
+            } else {
+                document.getElementById('searchResultCount').innerText = notes.length;
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            currentSearchTerm = '';
+            displayNotes();
+            updateStats();
+            showToast("> SEARCH_CLEARED", 1000);
+        }
+
+        // Display notes
+        function displayNotes() {
+            const grid = document.getElementById('notesGrid');
+            let filteredNotes = notes;
+            
+            if(currentSearchTerm) {
+                filteredNotes = notes.filter(n => {
+                    const decrypted = decryptText(n.text, n.encryptMethod);
+                    return decrypted.toLowerCase().includes(currentSearchTerm);
+                });
+            }
+            
+            const sortedNotes = [...filteredNotes].sort((a, b) => {
+                if(a.pinned && !b.pinned) return -1;
+                if(!a.pinned && b.pinned) return 1;
+                return b.id - a.id;
+            });
+            
+            if(sortedNotes.length === 0) {
+                grid.innerHTML = `
+                    <div style="text-align: center; padding: 60px; border: 1px solid #0f0; border-radius: 8px;">
+                        <div style="font-size: 48px;">💀</div>
+                        <h3 style="color:#0f0;">NO_NOTES_FOUND</h3>
+                        <p style="color:#666;">> Create a new note to start</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = sortedNotes.map(note => {
+                const isEncrypted = note.encryptMethod !== 'none';
+                const displayText = isEncrypted ? `[ENCRYPTED:${note.encryptMethod}] ${note.text.substring(0, 40)}...` : note.text;
+                
+                return `
+                    <div class="note-card ${isEncrypted ? 'encrypted' : ''}" id="note-${note.id}">
+                        <div class="note-header">
+                            <span class="note-id">${isEncrypted ? '🔒' : '🔓'} ID:${note.id.toString().slice(-6)}</span>
+                            <span class="note-date">${note.date}</span>
+                        </div>
+                        <div class="note-content ${isEncrypted ? 'encrypted-content' : ''}" onclick="decryptNote(${note.id}, this.parentNode)">
+                            ${escapeHtml(isEncrypted ? `[${note.encryptMethod.toUpperCase()}] ${note.text.substring(0, 50)}...` : note.text.substring(0, 100))}
+                        </div>
+                        <div class="note-actions">
+                            <button class="pin-btn ${note.pinned ? 'pinned' : ''}" onclick="togglePin(${note.id})">${note.pinned ? '📌 PINNED' : '📍 PIN'}</button>
+                            <button onclick="editNote(${note.id})">✏️ EDIT</button>
+                            <button onclick="copyNote(${note.id})">📋 COPY</button>
+                            <button class="delete-btn" onclick="deleteNote(${note.id})">🗑️ DELETE</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalNotes').innerText = notes.length;
+            document.getElementById('pinnedCount').innerText = notes.filter(n => n.pinned).length;
+            const encryptedCount = notes.filter(n => n.encryptMethod !== 'none').length;
+            document.getElementById('encryptedCount').innerText = encryptedCount;
+            if(!currentSearchTerm) {
+                document.getElementById('searchResultCount').innerText = notes.length;
+            }
+        }
+
+        // Animate status bar
+        function animateStatus() {
+            const statusSpan = document.getElementById('connectionStatus');
+            const texts = ['CONNECTED', 'SECURE', 'ENCRYPTED', 'HIDDEN'];
+            let i = 0;
+            setInterval(() => {
+                statusSpan.style.animation = 'glitch 0.3s';
+                setTimeout(() => {
+                    statusSpan.style.animation = '';
+                }, 300);
+            }, 3000);
+        }
+
+        // Show toast
+        function showToast(message, duration) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `> ${message} <span class="blink">_</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditId = null;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if(event.target === modal) closeModal();
+        }
+
+        // Make functions global
+        window.addNote = addNote;
+        window.deleteNote = deleteNote;
+        window.editNote = editNote;
+        window.saveEdit = saveEdit;
+        window.togglePin = togglePin;
+        window.copyNote = copyNote;
+        window.decryptNote = decryptNote;
+        window.searchNotes = searchNotes;
+        window.clearSearch = clearSearch;
+        window.closeModal = closeModal;
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
